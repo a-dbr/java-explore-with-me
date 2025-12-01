@@ -7,7 +7,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>4.0.0</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 
 	<name>Explore With Me</name>
@@ -37,29 +37,9 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
-    <!-- Управление зависимостями -->
-    <dependencyManagement>
-        <dependencies>
-            <!-- Внутренние -->
-            <dependency>
-                <groupId>ru.practicum</groupId>
-                <artifactId>dto</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <!-- Внешние -->
-            <dependency>
-                <groupId>org.postgresql</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>${postgresql.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+	<modules>
+		<module>stats-server</module>
+	</modules>
 
 	<build>
 		<pluginManagement>
