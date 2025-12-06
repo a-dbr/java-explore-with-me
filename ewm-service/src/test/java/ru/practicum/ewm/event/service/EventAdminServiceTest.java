@@ -127,7 +127,7 @@ class EventAdminServiceTest {
         ValidationException exception = assertThrows(ValidationException.class,
                 () -> eventAdminService.updateEvent(1L, request));
 
-        assertEquals("Дата начала изменяемого события должна быть не ранее чем за час от даты публикации",
+        assertEquals("Дата начала изменяемого события должна быть не ранее, чем за час от даты публикации",
                 exception.getMessage());
     }
 
