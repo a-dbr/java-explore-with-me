@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class NewEventDto {
 
     @NotBlank
@@ -31,14 +30,11 @@ public class NewEventDto {
     @NotNull
     private LocationDto location;
 
-    @Builder.Default
     private Boolean paid = false;
 
     @PositiveOrZero
-    @Builder.Default
     private Integer participantLimit = 0;
 
-    @Builder.Default
     private Boolean requestModeration = true;
 
     @NotBlank
