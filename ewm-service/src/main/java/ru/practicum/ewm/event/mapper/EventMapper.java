@@ -24,11 +24,10 @@ public interface EventMapper {
     @Mapping(target = "category", source = "categoryById")
     @Mapping(target = "location", source = "orCreateLocation")
     @Mapping(target = "initiator", source = "initiator")
-    // paid: если dto.getPaid() == null -> false
     @Mapping(target = "paid", expression = "java(dto.getPaid() == null ? false : dto.getPaid())")
-    // participantLimit: если null -> 0
-    @Mapping(target = "participantLimit", expression = "java(dto.getParticipantLimit() == null ? 0 : dto.getParticipantLimit())")
-    // requestModeration: если null -> true
-    @Mapping(target = "requestModeration", expression = "java(dto.getRequestModeration() == null ? true : dto.getRequestModeration())")
+    @Mapping(target = "participantLimit",
+            expression = "java(dto.getParticipantLimit() == null ? 0 : dto.getParticipantLimit())")
+    @Mapping(target = "requestModeration",
+            expression = "java(dto.getRequestModeration() == null ? true : dto.getRequestModeration())")
     Event toEvent(NewEventDto dto, Category categoryById, Location orCreateLocation, User initiator);
 }
