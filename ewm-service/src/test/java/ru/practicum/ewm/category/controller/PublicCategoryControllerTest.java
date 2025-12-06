@@ -10,7 +10,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.ewm.category.dto.CategoryDto;
 import ru.practicum.ewm.category.service.CategoryService;
 import ru.practicum.ewm.exception.NotFoundException;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 

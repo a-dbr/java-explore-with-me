@@ -17,6 +17,7 @@ import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.category.mapper.CategoryMapper;
 
+
 import java.util.List;
 import java.util.Optional;
 
