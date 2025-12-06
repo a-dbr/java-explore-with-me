@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.service.service.StatsService;
@@ -87,18 +88,19 @@ class StatsControllerTest {
     }
 
     @Test
-    void getStats_withStartAfterEnd_shouldThrowIllegalArgumentException() {
+    void getStats_withStartAfterEnd_shouldThrowResponseStatusException() {
         LocalDateTime start = LocalDateTime.now();
         LocalDateTime end = LocalDateTime.now().minusDays(1);
         List<String> uris = List.of("/test");
         boolean unique = false;
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
                 () -> statsController.getStats(start, end, uris, unique)
         );
 
-        assertEquals("Дата начала должна быть раньше даты окончания", exception.getMessage());
+        assertEquals("400 BAD_REQUEST \"Дата начала должна быть раньше даты окончания\"",
+                exception.getMessage());
 
         // Проверяем, что сервис не вызывался
         verify(statsService, never()).getStats(any(), any(), any(), anyBoolean());

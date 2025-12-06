@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.service.service.StatsService;
@@ -32,7 +33,7 @@ public class StatsController {
             @RequestParam(defaultValue = "false") boolean unique
     ) {
         if (start.isAfter(end)) {
-            throw new IllegalArgumentException("Дата начала должна быть раньше даты окончания");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Дата начала должна быть раньше даты окончания");
         }
         return statsService.getStats(start, end, uris, unique);
     }
