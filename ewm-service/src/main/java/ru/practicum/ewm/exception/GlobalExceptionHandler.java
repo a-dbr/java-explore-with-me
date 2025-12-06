@@ -24,9 +24,16 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(ConflictException e) {
+    public ResponseEntity<ErrorResponse> handleConflictException(ConflictException e) {
         log.error("ConflictException: {}", e.getMessage());
         ErrorResponse error = new ErrorResponse(HttpStatus.CONFLICT.value(), e.getMessage());
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(ValidationException e) {
+        log.error("ValidationException: {}", e.getMessage());
+        ErrorResponse error = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 }
