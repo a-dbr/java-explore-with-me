@@ -9,7 +9,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.ewm.compilation.dto.CompilationDto;
 import ru.practicum.ewm.compilation.service.CompilationService;
 import ru.practicum.ewm.exception.NotFoundException;
-import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -22,9 +21,6 @@ class PublicCompilationControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-//    @Autowired
-//    private ObjectMapper objectMapper;
 
     @MockitoBean
     private CompilationService compilationService;
