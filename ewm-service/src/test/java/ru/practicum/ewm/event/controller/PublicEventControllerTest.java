@@ -10,10 +10,11 @@ import ru.practicum.ewm.event.dto.EventSearchParams;
 import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.service.EventPublicService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -67,5 +68,22 @@ class PublicEventControllerTest {
 
         mockMvc.perform(get("/events/1"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void getEvents_WithInvalidDateRange_ShouldReturnBadRequest() throws Exception {
+        String start = LocalDateTime.now().plusDays(2)
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String end = LocalDateTime.now().plusDays(1)
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        mockMvc.perform(get("/events")
+                        .param("rangeStart", start)
+                        .param("rangeEnd", end))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message")
+                        .value("Дата начала не может быть позже даты окончания"));
+
+        verify(eventPublicService, never()).getEvents(any(), anyString(), anyString());
     }
 }

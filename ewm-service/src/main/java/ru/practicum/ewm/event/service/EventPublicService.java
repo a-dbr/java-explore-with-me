@@ -17,8 +17,8 @@ import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventSort;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.repository.EventRepository;
+import ru.practicum.ewm.exception.InternalServerException;
 import ru.practicum.ewm.exception.NotFoundException;
-import ru.practicum.ewm.exception.ValidationException;
 import ru.practicum.ewm.request.repository.ParticipationRequestRepository;
 
 import java.time.LocalDateTime;
@@ -42,12 +42,6 @@ public class EventPublicService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public List<EventShortDto> getEvents(EventSearchParams params, String ip, String uri) {
-        // Валидация дат
-        if (params.getRangeStart() != null && params.getRangeEnd() != null) {
-            if (params.getRangeStart().isAfter(params.getRangeEnd())) {
-                throw new ValidationException("Дата начала не может быть позже даты окончания");
-            }
-        }
 
         // Установка дефолтных значений для дат
         LocalDateTime rangeStart = params.getRangeStart();
@@ -215,7 +209,7 @@ public class EventPublicService {
 
             statsClient.hit(hitDto);
         } catch (Exception e) {
-            throw new RuntimeException("Ошибка при сохранении статистики: " + e.getMessage());
+            throw new InternalServerException("Ошибка при сохранении статистики: " + e.getMessage());
         }
     }
 }

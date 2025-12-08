@@ -2,13 +2,13 @@ package ru.practicum.ewm.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class ConflictException extends ApiException {
-    public ConflictException(String message) {
+public class BadRequestException extends ApiException {
+    public BadRequestException(String message) {
         super(message);
     }
 
     @Override
     public HttpStatus getStatus() {
-        return HttpStatus.CONFLICT;
+        return HttpStatus.BAD_REQUEST;
     }
 }

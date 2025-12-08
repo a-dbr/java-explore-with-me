@@ -10,9 +10,9 @@ import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.repository.EventRepository;
+import ru.practicum.ewm.exception.BadRequestException;
 import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
-import ru.practicum.ewm.exception.ValidationException;
 import ru.practicum.ewm.location.service.LocationService;
 import ru.practicum.ewm.request.repository.ParticipationRequestRepository;
 import ru.practicum.ewm.user.model.User;
@@ -39,11 +39,11 @@ public class EventPrivateService {
     public EventFullDto createEvent(Long userId, NewEventDto dto) {
 
         if (dto.getEventDate() == null) {
-            throw new ValidationException("Дата события не может быть пустой");
+            throw new BadRequestException("Дата события не может быть пустой");
         }
 
         if (dto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ValidationException("Дата начала события должна быть минимум через 2 часа от текущего момента");
+            throw new BadRequestException("Дата начала события должна быть минимум через 2 часа от текущего момента");
         }
 
         User initiator = userRepository.findById(userId)
@@ -77,7 +77,7 @@ public class EventPrivateService {
         }
         if (dto.getEventDate() != null &&
                 dto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ValidationException("Дата события должна быть минимум через 2 часа от текущего момента");
+            throw new BadRequestException("Дата события должна быть минимум через 2 часа от текущего момента");
         }
 
         if (dto.getAnnotation() != null) event.setAnnotation(dto.getAnnotation());

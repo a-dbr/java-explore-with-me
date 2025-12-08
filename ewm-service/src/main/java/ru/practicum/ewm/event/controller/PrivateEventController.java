@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.service.EventPrivateService;
-import ru.practicum.ewm.exception.ValidationException;
+import ru.practicum.ewm.exception.BadRequestException;
 import ru.practicum.ewm.request.dto.*;
 import ru.practicum.ewm.request.service.RequestPrivateService;
 
@@ -85,7 +85,7 @@ public class PrivateEventController {
             @RequestParam(required = false) Long eventId) {
 
         if (eventId == null) {
-            throw new ValidationException("ID события не может быть пустым");
+            throw new BadRequestException("ID события не может быть пустым");
         }
         return requestService.addRequest(userId, eventId);
     }

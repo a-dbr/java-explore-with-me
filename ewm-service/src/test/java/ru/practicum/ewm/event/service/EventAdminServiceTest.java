@@ -14,9 +14,9 @@ import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.model.StateAction;
 import ru.practicum.ewm.event.repository.EventRepository;
+import ru.practicum.ewm.exception.BadRequestException;
 import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
-import ru.practicum.ewm.exception.ValidationException;
 import ru.practicum.ewm.location.model.Location;
 import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.request.repository.ParticipationRequestRepository;
@@ -75,11 +75,11 @@ class EventAdminServiceTest {
     }
 
     @Test
-    void getEvents_WithInvalidDateRange_ShouldThrowValidationException() {
+    void getEvents_WithInvalidDateRange_ShouldThrowBadRequestException() {
         LocalDateTime start = LocalDateTime.now().plusDays(1);
         LocalDateTime end = LocalDateTime.now();
 
-        ValidationException exception = assertThrows(ValidationException.class,
+        BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> eventAdminService.getEvents(null, null, null, start, end, 0, 10));
 
         assertEquals("Дата начала не может быть позже даты окончания", exception.getMessage());
@@ -118,13 +118,13 @@ class EventAdminServiceTest {
     }
 
     @Test
-    void updateEvent_WithInvalidEventDate_ShouldThrowValidationException() {
+    void updateEvent_WithInvalidEventDate_ShouldThrowBadRequestException() {
         UpdateEventAdminRequest request = new UpdateEventAdminRequest();
         request.setEventDate(LocalDateTime.now().minusHours(1));
 
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
 
-        ValidationException exception = assertThrows(ValidationException.class,
+        BadRequestException exception = assertThrows(BadRequestException.class,
                 () -> eventAdminService.updateEvent(1L, request));
 
         assertEquals("Дата начала изменяемого события должна быть не ранее, чем за час от даты публикации",

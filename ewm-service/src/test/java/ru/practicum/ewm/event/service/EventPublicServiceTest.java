@@ -20,7 +20,6 @@ import ru.practicum.ewm.event.model.EventSort;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.repository.EventRepository;
 import ru.practicum.ewm.exception.NotFoundException;
-import ru.practicum.ewm.exception.ValidationException;
 import ru.practicum.ewm.location.model.Location;
 import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.request.repository.ParticipationRequestRepository;
@@ -103,18 +102,6 @@ class EventPublicServiceTest {
         testParams = new EventSearchParams();
         testParams.setFrom(0);
         testParams.setSize(10);
-    }
-
-    @Test
-    void getEvents_WithInvalidDateRange_ShouldThrowValidationException() {
-        testParams.setRangeStart(LocalDateTime.now().plusDays(2));
-        testParams.setRangeEnd(LocalDateTime.now().plusDays(1));
-
-        ValidationException exception = assertThrows(ValidationException.class,
-                () -> eventPublicService.getEvents(testParams, "127.0.0.1", "/events"));
-
-        assertEquals("Дата начала не может быть позже даты окончания", exception.getMessage());
-        verify(eventRepository, never()).findPublishedEvents(any(), any(), any(), any(), any(), any());
     }
 
     @Test

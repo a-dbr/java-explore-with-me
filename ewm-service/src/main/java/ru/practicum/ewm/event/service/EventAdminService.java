@@ -13,9 +13,9 @@ import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.model.StateAction;
 import ru.practicum.ewm.event.repository.EventRepository;
+import ru.practicum.ewm.exception.BadRequestException;
 import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
-import ru.practicum.ewm.exception.ValidationException;
 import ru.practicum.ewm.location.service.LocationService;
 import ru.practicum.ewm.request.repository.ParticipationRequestRepository;
 
@@ -47,7 +47,7 @@ public class EventAdminService {
         }
 
         if (rangeStart.isAfter(rangeEnd)) {
-            throw new ValidationException("Дата начала не может быть позже даты окончания");
+            throw new BadRequestException("Дата начала не может быть позже даты окончания");
         }
 
         Pageable pageable = PageRequest.of(from / size, size);
@@ -67,7 +67,7 @@ public class EventAdminService {
         // Валидация времени события
         if (request.getEventDate() != null) {
             if (request.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
-                throw new ValidationException("Дата начала изменяемого события должна быть не ранее, " +
+                throw new BadRequestException("Дата начала изменяемого события должна быть не ранее, " +
                         "чем за час от даты публикации");
             }
             event.setEventDate(request.getEventDate());

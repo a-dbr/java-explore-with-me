@@ -11,6 +11,7 @@ import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.EventSearchParams;
 import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.service.EventPublicService;
+import ru.practicum.ewm.exception.BadRequestException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,11 +39,15 @@ public class PublicEventController {
             @RequestParam(defaultValue = "10") @Min(1) int size,
             HttpServletRequest request) {
 
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            throw new BadRequestException("Дата начала не может быть позже даты окончания");
+        }
+
         EventSearchParams params = new EventSearchParams(
                 text, categories, paid, rangeStart, rangeEnd,
                 onlyAvailable, sort, from, size
         );
-
+        
         return eventPublicService.getEvents(params, request.getRemoteAddr(), request.getRequestURI());
     }
 

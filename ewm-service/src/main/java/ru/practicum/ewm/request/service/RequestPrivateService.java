@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.repository.EventRepository;
+import ru.practicum.ewm.exception.BadRequestException;
 import ru.practicum.ewm.exception.ConflictException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.request.mapper.RequestMapper;
@@ -140,7 +141,7 @@ public class RequestPrivateService {
                 request.setStatus(RequestStatus.REJECTED);
                 rejected.add(mapper.toParticipationRequestResponse(request));
             } else {
-                throw new IllegalArgumentException("Неверный статус: " + dto.getStatus());
+                throw new BadRequestException("Неверный статус: " + dto.getStatus());
             }
 
             requestRepository.save(request);
