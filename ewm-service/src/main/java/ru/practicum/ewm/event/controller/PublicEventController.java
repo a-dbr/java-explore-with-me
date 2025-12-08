@@ -47,7 +47,6 @@ public class PublicEventController {
                 text, categories, paid, rangeStart, rangeEnd,
                 onlyAvailable, sort, from, size
         );
-        
         return eventPublicService.getEvents(params, request.getRemoteAddr(), request.getRequestURI());
     }
 
