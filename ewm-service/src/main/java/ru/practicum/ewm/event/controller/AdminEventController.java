@@ -11,6 +11,7 @@ import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.UpdateEventAdminRequest;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.service.EventAdminService;
+import ru.practicum.ewm.exception.BadRequestException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,11 +34,14 @@ public class AdminEventController {
                                         @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
                                         @RequestParam(defaultValue = "0") @PositiveOrZero int from,
                                         @RequestParam(defaultValue = "10") @Positive int size) {
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            throw new BadRequestException("Дата начала не может быть позже даты окончания");
+        }
         return eventAdminService.getEvents(users, states, categories, rangeStart, rangeEnd, from, size);
     }
 
     @PatchMapping("/{eventId}")
-    public EventFullDto updateEvent(@PathVariable Long eventId,
+    public EventFullDto updateEvent(@PathVariable @Positive Long eventId,
                                     @Valid @RequestBody UpdateEventAdminRequest request) {
         return eventAdminService.updateEvent(eventId, request);
     }

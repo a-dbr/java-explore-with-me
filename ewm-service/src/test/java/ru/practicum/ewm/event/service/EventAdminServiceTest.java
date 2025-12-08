@@ -75,17 +75,6 @@ class EventAdminServiceTest {
     }
 
     @Test
-    void getEvents_WithInvalidDateRange_ShouldThrowBadRequestException() {
-        LocalDateTime start = LocalDateTime.now().plusDays(1);
-        LocalDateTime end = LocalDateTime.now();
-
-        BadRequestException exception = assertThrows(BadRequestException.class,
-                () -> eventAdminService.getEvents(null, null, null, start, end, 0, 10));
-
-        assertEquals("Дата начала не может быть позже даты окончания", exception.getMessage());
-    }
-
-    @Test
     void updateEvent_ValidRequest_ShouldReturnUpdatedEvent() {
         UpdateEventAdminRequest request = new UpdateEventAdminRequest();
         request.setTitle("Updated Title");

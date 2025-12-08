@@ -38,10 +38,6 @@ public class EventPrivateService {
     @Transactional
     public EventFullDto createEvent(Long userId, NewEventDto dto) {
 
-        if (dto.getEventDate() == null) {
-            throw new BadRequestException("Дата события не может быть пустой");
-        }
-
         if (dto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
             throw new BadRequestException("Дата начала события должна быть минимум через 2 часа от текущего момента");
         }

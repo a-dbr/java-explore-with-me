@@ -46,10 +46,6 @@ public class EventAdminService {
             rangeEnd = LocalDateTime.now().plusYears(100);
         }
 
-        if (rangeStart.isAfter(rangeEnd)) {
-            throw new BadRequestException("Дата начала не может быть позже даты окончания");
-        }
-
         Pageable pageable = PageRequest.of(from / size, size);
 
         List<Event> events = eventRepository.findEventsForAdmin(

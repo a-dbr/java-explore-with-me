@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -77,6 +78,13 @@ public class GlobalExceptionHandler {
         ApiError err = build(HttpStatus.CONFLICT, mapReason(HttpStatus.CONFLICT),
                 ex.getMostSpecificCause().getMessage(), List.of(ex.toString()));
         return ResponseEntity.status(HttpStatus.CONFLICT).body(err);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Object> handleMissingParam(MissingServletRequestParameterException ex) {
+        ApiError err = build(HttpStatus.BAD_REQUEST,mapReason(HttpStatus.BAD_REQUEST),
+                ex.getMessage(), List.of(ex.toString()));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(err);
     }
 
     @ExceptionHandler(Exception.class)
