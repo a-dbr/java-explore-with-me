@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.category.service.CategoryService;
+import ru.practicum.ewm.comment.repository.CommentRepository;
 import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.model.Event;
@@ -33,6 +34,7 @@ public class EventPrivateService {
     private final CategoryService categoryService;
     private final LocationService locationService;
     private final ParticipationRequestRepository requestRepository;
+    private final CommentRepository commentRepository;
     private final EventMapper mapper;
 
     @Transactional
@@ -56,7 +58,7 @@ public class EventPrivateService {
         Event saved = eventRepository.save(event);
 
         Long confirmedRequests = requestRepository.countConfirmedRequestsByEventId(saved.getId());
-        return mapper.toEventFullDto(saved, confirmedRequests, 0L); // views = 0 для нового события
+        return mapper.toEventFullDto(saved, confirmedRequests, 0L, 0L); // views = 0, comments = 0 для нового события
     }
 
     @Transactional
@@ -95,7 +97,8 @@ public class EventPrivateService {
         Event updated = eventRepository.save(event);
 
         Long confirmedRequests = requestRepository.countConfirmedRequestsByEventId(updated.getId());
-        return mapper.toEventFullDto(updated, confirmedRequests, 0L); // views 0
+        Long commentsCount = commentRepository.countByEventId(updated.getId());
+        return mapper.toEventFullDto(updated, confirmedRequests, 0L, commentsCount); // views 0
     }
 
     public List<EventShortDto> getUserEvents(Long userId, int from, int size) {
@@ -119,7 +122,8 @@ public class EventPrivateService {
         }
 
         Long confirmedRequests = requestRepository.countConfirmedRequestsByEventId(eventId);
-        return mapper.toEventFullDto(event, confirmedRequests, 0L); // views 0
+        Long commentsCount = commentRepository.countByEventId(eventId);
+        return mapper.toEventFullDto(event, confirmedRequests, 0L, commentsCount); // views 0
     }
 
     // вспомогательный метод для конвертации списка
@@ -130,11 +134,13 @@ public class EventPrivateService {
 
         List<Long> eventIds = events.stream().map(Event::getId).collect(Collectors.toList());
         Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsMap(eventIds);
+        Map<Long, Long> commentsCountMap = getCommentsCountMap(eventIds);
 
         return events.stream()
                 .map(event -> mapper.toEventShortDto(event,
                         confirmedRequestsMap.getOrDefault(event.getId(), 0L),
-                        0L)) // views пока 0
+                        0L, // views пока 0
+                        commentsCountMap.getOrDefault(event.getId(), 0L)))
                 .collect(Collectors.toList());
     }
 
@@ -142,6 +148,20 @@ public class EventPrivateService {
     private Map<Long, Long> getConfirmedRequestsMap(List<Long> eventIds) {
         List<Object[]> results = requestRepository.countConfirmedRequestsByEventIds(eventIds);
         return results.stream()
+                .collect(Collectors.toMap(
+                        result -> (Long) result[0],
+                        result -> (Long) result[1]
+                ));
+    }
+
+    // метод для получения количества комментариев
+    private Map<Long, Long> getCommentsCountMap(List<Long> eventIds) {
+        if (eventIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return commentRepository.countCommentsByEventIds(eventIds)
+                .stream()
                 .collect(Collectors.toMap(
                         result -> (Long) result[0],
                         result -> (Long) result[1]

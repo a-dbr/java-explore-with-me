@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import ru.practicum.client.StatsClient;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.ewm.category.model.Category;
+import ru.practicum.ewm.comment.repository.CommentRepository;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.EventSearchParams;
 import ru.practicum.ewm.event.dto.EventShortDto;
@@ -41,6 +42,9 @@ class EventPublicServiceTest {
 
     @Mock
     private ParticipationRequestRepository requestRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
 
     @Mock
     private StatsClient statsClient;
@@ -133,6 +137,8 @@ class EventPublicServiceTest {
         when(mapper.toEventShortDto(testEvent)).thenReturn(event1);
         when(mapper.toEventShortDto(testEvent2)).thenReturn(event2);
         when(requestRepository.countConfirmedRequestsByEventIds(anyList()))
+                .thenReturn(List.of(new Object[]{1L, 0L}, new Object[]{2L, 0L}));
+        when(commentRepository.countCommentsByEventIds(anyList()))
                 .thenReturn(List.of(new Object[]{1L, 0L}, new Object[]{2L, 0L}));
 
         ViewStatsDto stats1 = new ViewStatsDto("ewm-main-service", "/events/1", 5L);
