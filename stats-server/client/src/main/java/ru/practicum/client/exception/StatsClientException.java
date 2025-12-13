@@ -6,6 +6,11 @@ public class StatsClientException extends RuntimeException {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public StatsClientException(String message) { super(message); }
-    public StatsClientException(String message, Throwable cause) { super(message, cause); }
+    public StatsClientException(String message) {
+        super(message);
+    }
+
+    public StatsClientException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
