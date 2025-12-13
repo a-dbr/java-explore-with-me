@@ -1,12 +1,16 @@
 package ru.practicum.ewm.event.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.client.StatsClient;
+import ru.practicum.client.exception.StatsClientBadRequestException;
+import ru.practicum.client.exception.StatsClientException;
+import ru.practicum.client.exception.StatsClientUnavailableException;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStatsDto;
 import ru.practicum.ewm.comment.repository.CommentRepository;
@@ -18,21 +22,21 @@ import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventSort;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.repository.EventRepository;
-import ru.practicum.ewm.exception.InternalServerException;
+import ru.practicum.ewm.exception.BadRequestException;
 import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.request.repository.ParticipationRequestRepository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class EventPublicService {
 
     private final EventRepository eventRepository;
@@ -40,6 +44,7 @@ public class EventPublicService {
     private final ParticipationRequestRepository requestRepository;
     private final StatsClient statsClient;
     private final EventMapper mapper;
+    private static final Pattern EVENT_URI_PATTERN = Pattern.compile("/events/(\\d+)");
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -157,33 +162,46 @@ public class EventPublicService {
         return dto;
     }
 
-    private Map<Long, Long> getViewsMap(List<Long> eventIds) {
-        try {
-            // Формирование списка URI для запроса статистики
-            List<String> uris = eventIds.stream()
-                    .map(id -> "/events/" + id)
-                    .collect(Collectors.toList());
-
-            // Запрос статистики с начала времени до текущего момента
-            LocalDateTime start = LocalDateTime.of(1970, 1, 1, 0, 0, 0);
-            LocalDateTime end = LocalDateTime.now();
-
-            Collection<ViewStatsDto> stats = statsClient.getStat(
-                    start.format(FORMATTER),
-                    end.format(FORMATTER),
-                    uris,
-                    true
-            );
-
-            return stats.stream()
-                    .collect(Collectors.toMap(
-                            stat -> extractEventIdFromUri(stat.getUri()),
-                            ViewStatsDto::getHits,
-                            (existing, replacement) -> existing
-                    ));
-        } catch (Exception e) {
+    private Map<Long, Long> getViewsMap(Collection<Long> eventIds) {
+        if (eventIds == null || eventIds.isEmpty()) {
             return Map.of();
         }
+
+        List<String> uris = eventIds.stream()
+                .map(id -> "/events/" + id)
+                .collect(Collectors.toList());
+
+        String start = LocalDateTime.of(1970, 1, 1, 0, 0).format(FORMATTER);
+        String end = LocalDateTime.now().format(FORMATTER);
+
+        Collection<ViewStatsDto> stats;
+        try {
+            stats = statsClient.getStat(start, end, uris, true);
+        } catch (StatsClientBadRequestException badReq) {
+            log.error("Сервис статистики вернул статус 400 для событий {}: {}", eventIds, badReq.getMessage());
+            // Переводим ошибку клиента stats в локальную HTTP-ошибку API ewm
+            throw new BadRequestException("Ошибка при запросе статистики: " + badReq.getMessage());
+        } catch (StatsClientUnavailableException unavailable) {
+            log.warn("Сервис статистики недоступен: {}", unavailable.getMessage());
+            return Map.of();
+        } catch (StatsClientException clientEx) {
+            log.error("Внутренняя ошибка сервиса статистики: {}", clientEx.getMessage());
+            return Map.of();
+        } catch (Exception ex) {
+            log.error("Непредвиденная ошибка сервиса статистики: {}", ex.getMessage(), ex);
+            return Map.of();
+        }
+
+        Map<Long, Long> result = new HashMap<>();
+        for (ViewStatsDto s : stats) {
+            Long id = extractEventIdFromUri(s.getUri());
+            if (id == null) {
+                log.warn("Пропуск для некорректного uri='{}' (hits={})", s.getUri(), s.getHits());
+                continue;
+            }
+            result.merge(id, s.getHits(), Long::sum);
+        }
+        return result;
     }
 
     private Map<Long, Long> getConfirmedRequestsMap(List<Long> eventIds) {
@@ -213,26 +231,43 @@ public class EventPublicService {
     }
 
     private Long extractEventIdFromUri(String uri) {
+        if (uri == null || uri.isBlank()) {
+            log.warn("extractEventIdFromUri: URI не должен быть пуст");
+            return null;
+        }
+        Matcher m = EVENT_URI_PATTERN.matcher(uri);
+        if (!m.find()) {
+            log.warn("extractEventIdFromUri: URI не соответствует паттерну: {}", uri);
+            return null;
+        }
         try {
-            String[] parts = uri.split("/");
-            return Long.parseLong(parts[parts.length - 1]);
-        } catch (Exception e) {
-            return 0L;
+            return Long.parseLong(m.group(1));
+        } catch (NumberFormatException ex) {
+            log.warn("extractEventIdFromUri: некорректный ID в URI='{}'", uri, ex);
+            return null;
         }
     }
 
     private void saveStats(String ip, String uri) {
+        EndpointHitDto hitDto = new EndpointHitDto(
+                "ewm-main-service",
+                uri,
+                ip,
+                LocalDateTime.now()
+        );
         try {
-            EndpointHitDto hitDto = new EndpointHitDto(
-                    "ewm-main-service",
-                    uri,
-                    ip,
-                    LocalDateTime.now()
-            );
-
             statsClient.hit(hitDto);
-        } catch (Exception e) {
-            throw new InternalServerException("Ошибка при сохранении статистики: " + e.getMessage());
+        } catch (StatsClientBadRequestException badReq) {
+            log.error("Ошибка сохранения статистики: некорректный запрос для uri='{}', ip='{}'. Причина: {}",
+                    uri, ip, badReq.getMessage());
+        } catch (StatsClientUnavailableException unavailable) {
+            log.warn("Сервис статистики был недоступен при сохранении uri='{}', ip='{}'. Причина: {}",
+                    uri, ip, unavailable.getMessage());
+        } catch (StatsClientException statsClientEx) {
+            log.error("Возникла внутренняя ошибка сервиса статистики при сохранении uri='{}', ip='{}'.",
+                    uri, ip);
+        } catch (Exception ex) {
+            log.error("Непредвиденная ошибка сервиса статистики при сохранении uri='{}', ip='{}'.", uri, ip, ex);
         }
     }
 }

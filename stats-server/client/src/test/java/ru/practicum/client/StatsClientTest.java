@@ -1,7 +1,9 @@
 package ru.practicum.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.dto.EndpointHitDto;
 
@@ -13,6 +15,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class StatsClientTest {
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @Test
     void testStatsClientInterface_hasCorrectMethods() {
@@ -52,9 +57,9 @@ class StatsClientTest {
 
     @Test
     void testStatsClientImpl_implementsInterface() {
-        StatsClientImpl implementation = new StatsClientImpl("http://localhost:9090");
+        StatsClientImpl implementation = new StatsClientImpl("http://localhost:9090", objectMapper);
 
-        assertTrue(implementation instanceof StatsClient);
+        assertInstanceOf(StatsClient.class, implementation);
         assertNotNull(implementation);
     }
 }
