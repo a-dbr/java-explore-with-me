@@ -1,8 +1,10 @@
 package ru.practicum.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import ru.practicum.dto.EndpointHitDto;
@@ -17,26 +19,35 @@ class StatsClientImplTest {
 
     private StatsClientImpl statsClient;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     @BeforeEach
     void setUp() {
-        statsClient = new StatsClientImpl("http://localhost:9090");
+        // теперь конструктор принимает ObjectMapper
+        statsClient = new StatsClientImpl("http://localhost:9090", objectMapper);
     }
 
     @Test
-    void testConstructorWithDefaultUrl() {
-        StatsClientImpl client = new StatsClientImpl("http://localhost:9090");
+    void testConstructorInjectsDependencies() {
+        assertNotNull(statsClient);
 
-        assertNotNull(client);
-        assertNotNull(ReflectionTestUtils.getField(client, "restClient"));
-        assertNotNull(ReflectionTestUtils.getField(client, "formatter"));
+        Object restClient = ReflectionTestUtils.getField(statsClient, "restClient");
+        Object formatter = ReflectionTestUtils.getField(statsClient, "formatter");
+        Object injectedMapper = ReflectionTestUtils.getField(statsClient, "objectMapper");
+
+        assertNotNull(restClient, "restClient должен быть создан");
+        assertNotNull(formatter, "formatter должен быть создан");
+        assertSame(objectMapper, injectedMapper, "ObjectMapper должен быть инжектирован из конструктора");
     }
 
     @Test
     void testConstructorWithCustomUrl() {
-        StatsClientImpl client = new StatsClientImpl("http://custom-host:8080");
+        StatsClientImpl client = new StatsClientImpl("http://custom-host:8080", objectMapper);
 
         assertNotNull(client);
         assertNotNull(ReflectionTestUtils.getField(client, "restClient"));
+        assertSame(objectMapper, ReflectionTestUtils.getField(client, "objectMapper"));
     }
 
     @Test
@@ -171,21 +182,20 @@ class StatsClientImplTest {
 
     @Test
     void testDateTimeFormatterPattern() {
-        String validDate = "2024-01-01 12:30:45";
-        String start = validDate;
+        String start = "2024-01-01 12:30:45";
         String end = "2024-01-02 12:30:45";
 
         try {
             statsClient.getStat(start, end, List.of("/test"), false);
         } catch (Exception e) {
-            // Не должно быть исключения парсинга даты
+            // Не должно быть исключения при парсинге даты
             assertFalse(e.getMessage().contains("DateTimeParseException"));
         }
     }
 
     @Test
     void testImplementsStatsClientInterface() {
-        assertTrue(statsClient instanceof StatsClient);
+        assertInstanceOf(StatsClient.class, statsClient);
         assertNotNull(statsClient);
     }
 }

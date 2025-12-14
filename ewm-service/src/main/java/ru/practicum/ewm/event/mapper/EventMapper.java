@@ -14,11 +14,11 @@ import ru.practicum.ewm.user.model.User;
 public interface EventMapper {
     EventFullDto toEventFullDto(Event event);
 
-    EventFullDto toEventFullDto(Event event, Long confirmedRequests, Long views);
+    EventFullDto toEventFullDto(Event event, Long confirmedRequests, Long views, Long commentCount);
 
     EventShortDto toEventShortDto(Event event);
 
-    EventShortDto toEventShortDto(Event event, Long confirmedRequests, Long views);
+    EventShortDto toEventShortDto(Event event, Long confirmedRequests, Long views, Long commentCount);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "category", source = "categoryById")

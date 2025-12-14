@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.dto.EndpointHitDto;
 import ru.practicum.dto.ViewStatsDto;
+import ru.practicum.service.exception.InvalidStatsRequestException;
 import ru.practicum.service.repository.EndpointHitRepository;
 
 import java.time.LocalDateTime;
@@ -92,15 +93,15 @@ class StatsServiceTest {
     }
 
     @Test
-    void saveHit_withFutureTimestamp_shouldThrowIllegalArgumentException() {
+    void saveHit_withFutureTimestamp_shouldThrowInvalidStatsRequestException() {
         EndpointHitDto dto = new EndpointHitDto();
         dto.setApp("test-app");
         dto.setUri("/test");
         dto.setIp("127.0.0.1");
         dto.setTimestamp(LocalDateTime.now().plusHours(1)); // время в будущем
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
+        InvalidStatsRequestException exception = assertThrows(
+                InvalidStatsRequestException.class,
                 () -> statsService.saveHit(dto)
         );
 

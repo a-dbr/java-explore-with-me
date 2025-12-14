@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.service.CategoryService;
+import ru.practicum.ewm.comment.repository.CommentRepository;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.UpdateEventAdminRequest;
 import ru.practicum.ewm.event.model.Event;
@@ -41,6 +42,8 @@ class EventAdminServiceTest {
     @Mock
     private CategoryService categoryService;
 
+    @Mock
+    private CommentRepository commentRepository;
 
     @Mock
     private EventMapper mapper;
@@ -85,7 +88,8 @@ class EventAdminServiceTest {
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
         when(eventRepository.save(any(Event.class))).thenReturn(event);
         when(requestRepository.countConfirmedRequestsByEventId(1L)).thenReturn(0L);
-        when(mapper.toEventFullDto(any(Event.class), anyLong(), anyLong())).thenReturn(expectedDto);
+        when(commentRepository.countByEventId(1L)).thenReturn(0L);
+        when(mapper.toEventFullDto(any(Event.class), anyLong(), anyLong(), anyLong())).thenReturn(expectedDto);
 
         EventFullDto result = eventAdminService.updateEvent(1L, request);
 
@@ -131,7 +135,8 @@ class EventAdminServiceTest {
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
         when(eventRepository.save(any(Event.class))).thenReturn(event);
         when(requestRepository.countConfirmedRequestsByEventId(1L)).thenReturn(0L);
-        when(mapper.toEventFullDto(any(Event.class), anyLong(), anyLong())).thenReturn(expectedDto);
+        when(commentRepository.countByEventId(1L)).thenReturn(0L);
+        when(mapper.toEventFullDto(any(Event.class), anyLong(), anyLong(), anyLong())).thenReturn(expectedDto);
 
         EventFullDto result = eventAdminService.updateEvent(1L, request);
 
@@ -165,12 +170,14 @@ class EventAdminServiceTest {
         when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
         when(eventRepository.save(any(Event.class))).thenReturn(event);
         when(requestRepository.countConfirmedRequestsByEventId(1L)).thenReturn(0L);
-        when(mapper.toEventFullDto(any(Event.class), anyLong(), anyLong())).thenReturn(expectedDto);
+        when(commentRepository.countByEventId(1L)).thenReturn(0L);
+        when(mapper.toEventFullDto(any(Event.class), anyLong(), anyLong(), anyLong())).thenReturn(expectedDto);
 
         EventFullDto result = eventAdminService.updateEvent(1L, request);
 
         assertNotNull(result);
         assertEquals(EventState.CANCELED, event.getState());
+        verify(eventRepository).save(event);
     }
 
     @Test
@@ -200,7 +207,8 @@ class EventAdminServiceTest {
         when(categoryService.getCategoryById(2L)).thenReturn(newCategory);
         when(eventRepository.save(any(Event.class))).thenReturn(event);
         when(requestRepository.countConfirmedRequestsByEventId(1L)).thenReturn(0L);
-        when(mapper.toEventFullDto(any(Event.class), anyLong(), anyLong())).thenReturn(expectedDto);
+        when(commentRepository.countByEventId(1L)).thenReturn(0L);
+        when(mapper.toEventFullDto(any(Event.class), anyLong(), anyLong(), anyLong())).thenReturn(expectedDto);
 
         EventFullDto result = eventAdminService.updateEvent(1L, request);
 

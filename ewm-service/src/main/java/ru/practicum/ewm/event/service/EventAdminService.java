@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.category.service.CategoryService;
+import ru.practicum.ewm.comment.repository.CommentRepository;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.UpdateEventAdminRequest;
 import ru.practicum.ewm.event.mapper.EventMapper;
@@ -32,6 +33,7 @@ public class EventAdminService {
     private final EventRepository eventRepository;
     private final ParticipationRequestRepository requestRepository;
     private final CategoryService categoryService;
+    private final CommentRepository commentRepository;
     private final LocationService locationService;
     private final EventMapper mapper;
 
@@ -135,7 +137,8 @@ public class EventAdminService {
 
     private EventFullDto convertToEventFullDto(Event event) {
         Long confirmedRequests = requestRepository.countConfirmedRequestsByEventId(event.getId());
-        return mapper.toEventFullDto(event, confirmedRequests, 0L);
+        Long commentsCount = commentRepository.countByEventId(event.getId());
+        return mapper.toEventFullDto(event, confirmedRequests, 0L, commentsCount);
     }
 
     private List<EventFullDto> convertToEventFullDtoList(List<Event> events) {
@@ -148,12 +151,14 @@ public class EventAdminService {
                 .collect(Collectors.toList());
 
         Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsMap(eventIds);
+        Map<Long, Long> commentsCountMap = getCommentsCountMap(eventIds);
 
         return events.stream()
                 .map(event -> mapper.toEventFullDto(
                         event,
                         confirmedRequestsMap.getOrDefault(event.getId(), 0L),
-                        0L // views пока 0
+                        0L, // views пока 0
+                        commentsCountMap.getOrDefault(event.getId(), 0L)
                 ))
                 .collect(Collectors.toList());
     }
@@ -161,6 +166,19 @@ public class EventAdminService {
     private Map<Long, Long> getConfirmedRequestsMap(List<Long> eventIds) {
         List<Object[]> results = requestRepository.countConfirmedRequestsByEventIds(eventIds);
         return results.stream()
+                .collect(Collectors.toMap(
+                        result -> (Long) result[0],
+                        result -> (Long) result[1]
+                ));
+    }
+
+    private Map<Long, Long> getCommentsCountMap(List<Long> eventIds) {
+        if (eventIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return commentRepository.countCommentsByEventIds(eventIds)
+                .stream()
                 .collect(Collectors.toMap(
                         result -> (Long) result[0],
                         result -> (Long) result[1]
